@@ -1,5 +1,6 @@
 package com.example.temporal.test.workflow;
 
+import com.example.temporal.test.activities.GreetingActivities;
 import io.temporal.activity.ActivityOptions;
 import io.temporal.workflow.Workflow;
 
@@ -14,8 +15,28 @@ public class GreetingWorkflowImpl
                             .setStartToCloseTimeout(Duration.ofSeconds(10))
                             .build());
 
+    private boolean isRunning = true;
+    private String greetingName;
+
     @Override
     public String greet(String name) {
-        return activities.composeGreeting(name);
+        this.greetingName = name;
+
+        while (isRunning) {
+            activities.composeGreeting(this.greetingName);
+            Workflow.sleep(Duration.ofSeconds(5));
+        }
+
+        return "ok";
+    }
+
+    @Override
+    public void stop() {
+        isRunning = false;
+    }
+
+    @Override
+    public void updateName(String newName) {
+        this.greetingName = newName;
     }
 }

@@ -1,5 +1,7 @@
-package com.example.temporal.test.workflow;
+package com.example.temporal.test.config;
 
+import com.example.temporal.test.activities.GreetingActivitiesImpl;
+import com.example.temporal.test.workflow.GreetingWorkflowImpl;
 import io.temporal.client.WorkflowClient;
 import io.temporal.client.WorkflowOptions;
 import io.temporal.serviceclient.WorkflowServiceStubs;
@@ -12,14 +14,14 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class TemporalConfig {
 
-    public static final String TASK_QUEUE = "hello-task-queue";
+    public static final String TASK_QUEUE = "HELLO_TASK_QUEUE";
 
     @Bean
     WorkflowServiceStubs service() {
-        // connects to localhost:7233 (dev server default)
-        return WorkflowServiceStubs
-                .newServiceStubs(WorkflowServiceStubsOptions.newBuilder()
-                .build());
+        // localhost:7233 by default
+        return WorkflowServiceStubs.newServiceStubs(
+                WorkflowServiceStubsOptions.newBuilder().build()
+        );
     }
 
     @Bean
@@ -27,21 +29,20 @@ public class TemporalConfig {
         return WorkflowClient.newInstance(service);
     }
 
-    @Bean
+    @Bean(initMethod = "start", destroyMethod = "shutdown")
     WorkerFactory workerFactory(WorkflowClient client) {
-        return WorkerFactory.newInstance(client);
-    }
+        WorkerFactory factory = WorkerFactory.newInstance(client);
 
-    @Bean(initMethod = "start")
-    Worker startWorker(WorkerFactory factory) {
         Worker worker = factory.newWorker(TASK_QUEUE);
         worker.registerWorkflowImplementationTypes(GreetingWorkflowImpl.class);
         worker.registerActivitiesImplementations(new GreetingActivitiesImpl());
-        return worker; // factory.start() is called by initMethod on the same bean
+
+        return factory;
     }
 
-    // helper for controllers to create workflow stubs
     public static WorkflowOptions defaultOptions() {
-        return WorkflowOptions.newBuilder().setTaskQueue(TASK_QUEUE).build();
+        return WorkflowOptions.newBuilder()
+                .setTaskQueue(TASK_QUEUE)
+                .build();
     }
 }

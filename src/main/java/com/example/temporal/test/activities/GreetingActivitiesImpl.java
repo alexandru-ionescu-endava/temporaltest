@@ -1,4 +1,4 @@
-package com.example.temporal.test.workflow;
+package com.example.temporal.test.activities;
 
 public class GreetingActivitiesImpl
         implements GreetingActivities {

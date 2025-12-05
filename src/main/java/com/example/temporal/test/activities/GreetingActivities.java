@@ -1,4 +1,4 @@
-package com.example.temporal.test.workflow;
+package com.example.temporal.test.activities;
 
 import io.temporal.activity.ActivityInterface;
 
